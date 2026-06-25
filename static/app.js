@@ -69,16 +69,25 @@ async function analyze() {
 function renderResult(data, originalMessage) {
   const detective = data.detective;
   const risk = ["safe", "suspicious", "danger"].includes(detective.risk) ? detective.risk : "suspicious";
-  const labels = { safe: "An toàn", suspicious: "Nghi ngờ", danger: "Nguy hiểm" };
+  const labels = { safe: "An toàn", suspicious: "Nguy cơ", danger: "Nguy hiểm" };
   const signs = Array.isArray(detective.signs) ? detective.signs : [];
   const actions = Array.isArray(detective.actions) ? detective.actions.slice(0, 3) : [];
   const links = Array.isArray(data.links) ? data.links : [];
+  const dangerPercent = dangerScore(risk, signs, links);
 
   resultBox.innerHTML = `
     <section class="risk-card ${risk}">
+      <div class="risk-overview">
+        <div>
       <span class="risk-label">${labels[risk]}</span>
       <h2>Phân tích kỹ thuật</h2>
       <p>${escapeHtml(detective.summary || "Nội dung này cần kiểm tra thêm.")}</p>
+        </div>
+        <div class="danger-meter" style="--score:${dangerPercent}%" aria-label="Mức nguy hiểm ${dangerPercent}%">
+          <strong>${dangerPercent}%</strong>
+          <span>nguy hiểm</span>
+        </div>
+      </div>
     </section>
     <section>
       <h3>Dấu hiệu ScamCheck tìm thấy</h3>
@@ -170,9 +179,9 @@ function renderHistory() {
     target.innerHTML = '<p class="empty">Chưa có tin nào được lưu trên thiết bị này.</p>';
     return;
   }
-  const labels = { safe: "An toàn", suspicious: "Nghi ngờ", danger: "Nguy hiểm" };
+  const labels = { safe: "An toàn", suspicious: "Nguy cơ", danger: "Nguy hiểm" };
   target.innerHTML = history.map((item) => `<button class="history-item" data-history="${item.id}">
-    <strong>${labels[item.data?.detective?.risk] || "Nghi ngờ"} · ${new Date(item.date).toLocaleString("vi-VN")}</strong>
+    <strong>${labels[item.data?.detective?.risk] || "Nguy cơ"} · ${new Date(item.date).toLocaleString("vi-VN")}</strong>
     <span>${escapeHtml(item.message.slice(0, 130))}</span>
   </button>`).join("");
   target.querySelectorAll("[data-history]").forEach((button) => {
@@ -288,6 +297,12 @@ function readFile(file) {
 function updateCount() { document.querySelector("#count").textContent = `${message.value.length.toLocaleString("vi-VN")} / 5.000`; }
 function setError(value) { errorBox.textContent = value; errorBox.hidden = !value; }
 function apiUrl(path) { return `${API_BASE}${path}`; }
+function dangerScore(risk, signs, links) {
+  const base = { safe: 12, suspicious: 55, danger: 85 }[risk] ?? 55;
+  const signBonus = Math.min(signs.length * 3, 9);
+  const linkBonus = Math.min(links.length * 4, 8);
+  return Math.min(base + signBonus + linkBonus, 98);
+}
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 }

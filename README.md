@@ -5,7 +5,7 @@ Support .png, .jpg, .jpeg and .webp
 Disclaimer: Các kết quả không thể đúng 100%, có thể bị vượt qua bởi các hình thức lừa đảo tinh vi hơn.
 
 Và đây là layout của web:
-```
+```cpp
 ├── app.py (backend, chắc chắn rồi)
 ├── index.html (để chạy web)
 ├── requirement.txt (các model cần thiết)

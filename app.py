@@ -325,6 +325,10 @@ def detective_prompt(message, has_image=False):
     content = message or "(không có; hãy đọc chữ trong ảnh chụp màn hình)"
     return f'''Bạn là Thám tử ScamCheck. Giọng khô khan, lý tính. Phân tích kỹ thuật tin nhắn tiếng Việt.
 Trả về duy nhất JSON: {{"risk":"safe|suspicious|danger","summary":"1-2 câu","signs":[{{"reason":"lý do","quote":"trích nguyên văn từ tin"}}],"actions":["đúng 3 hành động"]}}.
+Quy tắc phân loại:
+- safe: nội dung đời thường, không yêu cầu tiền, mã xác thực, thông tin cá nhân, cài app hoặc bấm link lạ.
+- suspicious: có dấu hiệu đáng ngờ như tự xưng nhân viên/cơ quan, hỏi thông tin chung, thúc giục nhẹ, hoặc yêu cầu kiểm tra tài khoản; nhưng chưa có link lạ, chưa yêu cầu OTP/mật khẩu, chưa yêu cầu chuyển tiền, chưa yêu cầu cài app.
+- danger: có link lạ/giả mạo, yêu cầu OTP/mật khẩu, yêu cầu chuyển tiền, yêu cầu cài app/điều khiển máy, đe dọa khẩn cấp, hoặc cấm người dùng gọi kênh chính thức.
 Không bịa chi tiết. Mỗi quote phải có nguyên văn trong tin hoặc đọc được rõ trong ảnh.
 Ảnh chụp màn hình được gửi kèm: {image_note}.
 Nội dung người dùng nhập: {content}'''

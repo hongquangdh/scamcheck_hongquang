@@ -84,6 +84,7 @@ function renderResult(data, originalMessage) {
       <p>${escapeHtml(detective.summary || "Nội dung này cần kiểm tra thêm.")}</p>
         </div>
         <div class="danger-meter" style="--score:${dangerPercent}%" aria-label="Mức nguy hiểm ${dangerPercent}%">
+          <small>Biểu đồ</small>
           <strong>${dangerPercent}%</strong>
           <span>nguy hiểm</span>
         </div>

@@ -1,5 +1,5 @@
 ScamCheck là 1 dự án 1 thành viên (và 1 AI) phục vụ mục đích kiểm tra scam thuận tiện.
-Support .png, .jpg, .jpeg and .webp
+Support .png, .jpg, .jpeg and .webp.
 Đây là 1 dự án cho Trại hè FCT 2026 do công ty FPT Software tổ chức.
 
 Disclaimer: Các kết quả không thể đúng 100%, có thể bị vượt qua bởi các hình thức lừa đảo tinh vi hơn.

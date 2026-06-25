@@ -265,7 +265,7 @@ def normalize_phone(value):
     return f"0{digits[2:]}" if raw.startswith("+84") else digits
 
 
-def normalize_detective(data, message = "":
+def normalize_detective(data, message = ""):
     signs = []
     for item in data.get("signs", [])[:5] if isinstance(data.get("signs"), list) else []:
         if isinstance(item, dict):

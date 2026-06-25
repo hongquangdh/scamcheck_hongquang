@@ -17,7 +17,13 @@ DATA_DIR = BASE_DIR / "data"
 URL_RE = re.compile(r"(?:https?://|www\.)[^\s<>\"']+", re.IGNORECASE)
 PHONE_RE = re.compile(r"(?<!\d)(?:\+?84|0)(?:[\s.-]*\d){8,10}(?!\d)")
 IP_RE = re.compile(r"\d{1,3}(?:\.\d{1,3}){3}")
-
+DANGER_RE = re.compile(
+    r"otp|mã xác thực|ma xac thuc|mật khẩu|mat khau|chuyển khoản|chuyen khoan|"
+    r"chuyển tiền|chuyen tien|nạp tiền|nap tien|cài app|cai app|tải app|tai app|"
+    r"anydesk|teamviewer|điều khiển|dieu khien|khóa tài khoản|khoa tai khoan|"
+    r"bị bắt|bi bat|công an|cong an",
+    re.IGNORECASE,
+)
 RISKS = {"safe", "suspicious", "danger"}
 CHOICES = {"none", "clicked", "transferred", "otp"}
 IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
@@ -96,7 +102,10 @@ def analyze():
         return api_error("Tin nhắn dài quá 5.000 ký tự. Bác hãy rút gọn rồi thử lại.", 400)
 
     try:
-        detective = normalize_detective(call_gemini(detective_prompt(message, bool(image)), image, attempts=2))
+         detective = normalize_detective(
+            call_gemini(detective_prompt(message, bool(image)), image, attempts=2),
+            message,
+        )
     except ValueError as error:
         return api_error(str(error), 502)
 
@@ -256,7 +265,7 @@ def normalize_phone(value):
     return f"0{digits[2:]}" if raw.startswith("+84") else digits
 
 
-def normalize_detective(data):
+def normalize_detective(data, message = "":
     signs = []
     for item in data.get("signs", [])[:5] if isinstance(data.get("signs"), list) else []:
         if isinstance(item, dict):
@@ -268,14 +277,19 @@ def normalize_detective(data):
     actions = [str(item) for item in data.get("actions", [])[:3]] if isinstance(data.get("actions"), list) else []
     actions += DEFAULT_ACTIONS[len(actions):]
 
+    risk = data.get("risk") if data.get("risk") in RISKS else "suspicious"
+    risk == "danger" and message and not has_danger_trigger(message):
+        risk = "suspicious"
     return {
-        "risk": data.get("risk") if data.get("risk") in RISKS else "suspicious",
+        "risk": risk
         "summary": str(data.get("summary") or "Nội dung này cần được kiểm tra thêm."),
         "signs": signs,
         "actions": actions[:3],
     }
 
-
+def has_danger_trigger(message):
+    return bool(URL_RE.search(message) or DANGER_RE.search(message))
+    
 def normalize_psychology(data):
     message = str(data.get("message") or "").strip()
     if not message:
@@ -327,8 +341,11 @@ def detective_prompt(message, has_image=False):
 Trả về duy nhất JSON: {{"risk":"safe|suspicious|danger","summary":"1-2 câu","signs":[{{"reason":"lý do","quote":"trích nguyên văn từ tin"}}],"actions":["đúng 3 hành động"]}}.
 Quy tắc phân loại:
 - safe: nội dung đời thường, không yêu cầu tiền, mã xác thực, thông tin cá nhân, cài app hoặc bấm link lạ.
-- suspicious: có dấu hiệu đáng ngờ như tự xưng nhân viên/cơ quan, hỏi thông tin chung, thúc giục nhẹ, hoặc yêu cầu kiểm tra tài khoản; nhưng chưa có link lạ, chưa yêu cầu OTP/mật khẩu, chưa yêu cầu chuyển tiền, chưa yêu cầu cài app.
-- danger: có link lạ/giả mạo, yêu cầu OTP/mật khẩu, yêu cầu chuyển tiền, yêu cầu cài app/điều khiển máy, đe dọa khẩn cấp, hoặc cấm người dùng gọi kênh chính thức.
+- suspicious: có dấu hiệu đáng ngờ như tự xưng nhân viên/cơ quan, hỏi thông tin chung, hỏi tên ngân hàng, thúc
+         giục nhẹ, hoặc yêu cầu kiểm tra tài khoản; nhưng chưa có link lạ, chưa yêu cầu OTP/mật khẩu, chưa yêu cầu chuyển tiền, chưa yêu cầu cài app.
+- danger: chỉ dùng khi có link lạ/giả mạo, yêu cầu OTP/mật khẩu, yêu cầu chuyển tiền, yêu cầu cài app/điều khiể
+         n máy, mạo danh công an, đe dọa khóa tài khoản/bắt giữ, hoặc cấm người dùng gọi kênh chính thức.
+Không xếp danger chỉ vì người gửi tự xưng nhân viên hỗ trợ hoặc hỏi bác đang dùng ngân hàng nào; trường hợp đó là suspicious.
 Không bịa chi tiết. Mỗi quote phải có nguyên văn trong tin hoặc đọc được rõ trong ảnh.
 Ảnh chụp màn hình được gửi kèm: {image_note}.
 Nội dung người dùng nhập: {content}'''

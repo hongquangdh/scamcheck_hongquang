@@ -1,0 +1,74 @@
+[
+  {
+    "category": "Giả ngân hàng",
+    "name": "Dọa khóa tài khoản",
+    "description": "Tin tạo cảm giác gấp gáp bằng cách nói tài khoản sắp bị khóa.",
+    "example": "Tài khoản của bác sắp bị khóa. Hãy xác minh ngay."
+  },
+  {
+    "category": "Giả ngân hàng",
+    "name": "Xin mã xác thực",
+    "description": "Tin yêu cầu cung cấp mã xác thực hoặc thông tin riêng.",
+    "example": "Gửi mã xác thực để hoàn tất kiểm tra tài khoản."
+  },
+  {
+    "category": "Giả ngân hàng",
+    "name": "Đường dẫn giả mạo",
+    "description": "Tin dẫn người nhận tới tên miền dùng ký tự thay thế, như vietcornbank thay cho vietcombank.",
+    "example": "Bấm vào đường dẫn vietcornbank để cập nhật thông tin."
+  },
+  {
+    "category": "Giả cơ quan công an",
+    "name": "Dọa vi phạm pháp luật",
+    "description": "Tin khai thác nỗi sợ bằng lời buộc tội hoặc thông báo đang bị điều tra.",
+    "example": "Bác đang liên quan một vụ việc và phải làm theo hướng dẫn ngay."
+  },
+  {
+    "category": "Giả cơ quan công an",
+    "name": "Yêu cầu chuyển tiền",
+    "description": "Người gửi giả danh cơ quan và yêu cầu chuyển tiền để phục vụ điều tra.",
+    "example": "Chuyển tiền vào tài khoản này để kiểm tra rồi sẽ được hoàn lại."
+  },
+  {
+    "category": "Giả cơ quan công an",
+    "name": "Ép giữ bí mật",
+    "description": "Tin làm người nhận khó kiểm chứng bằng cách yêu cầu không hỏi người thân.",
+    "example": "Không được kể việc này cho ai trong lúc đang xác minh."
+  },
+  {
+    "category": "Trúng thưởng",
+    "name": "Thu phí nhận quà",
+    "description": "Tin hứa phần thưởng nhưng yêu cầu trả một khoản phí trước.",
+    "example": "Bác trúng thưởng, hãy chuyển phí hồ sơ để nhận quà."
+  },
+  {
+    "category": "Trúng thưởng",
+    "name": "Giục nhận thưởng",
+    "description": "Tin đặt thời hạn rất ngắn để người nhận không kịp kiểm tra.",
+    "example": "Phần thưởng sẽ hết hạn trong 30 phút, xác nhận ngay."
+  },
+  {
+    "category": "Trúng thưởng",
+    "name": "Xin thông tin riêng",
+    "description": "Tin dùng phần thưởng để dụ người nhận gửi thông tin cá nhân.",
+    "example": "Gửi thông tin cá nhân để chúng tôi chuyển phần thưởng."
+  },
+  {
+    "category": "Giả đơn vị giao hàng",
+    "name": "Thu phí giao lại",
+    "description": "Tin nói đơn hàng gặp lỗi rồi yêu cầu chuyển một khoản phí.",
+    "example": "Đơn hàng chưa giao được. Bác chuyển phí để giao lại."
+  },
+  {
+    "category": "Giả đơn vị giao hàng",
+    "name": "Đường dẫn theo dõi giả",
+    "description": "Tin dụ người nhận mở đường dẫn lạ để xem tình trạng đơn hàng.",
+    "example": "Bấm đường dẫn này để xác nhận địa chỉ nhận hàng."
+  },
+  {
+    "category": "Giả đơn vị giao hàng",
+    "name": "Đơn hàng không đặt",
+    "description": "Tin dựa vào sự tò mò hoặc lo lắng về một đơn hàng mà người nhận không biết.",
+    "example": "Bác có đơn hàng giá trị cao đang chờ xác nhận."
+  }
+]

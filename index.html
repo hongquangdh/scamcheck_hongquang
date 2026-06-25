@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b3b33">
+  <!-- Khi deploy frontend lên GitHub Pages, đổi content thành URL backend Flask, ví dụ: https://scamcheck-api.onrender.com -->
+  <meta name="api-base" content="">
+  <title>ScamCheck — Kiểm tra tin nhắn đáng ngờ</title>
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="#" data-page="check" aria-label="Trang kiểm tra">🛡️ <strong>ScamCheck</strong></a>
+    <nav aria-label="Điều hướng chính">
+      <button class="nav-button active" data-page="check">Kiểm tra</button>
+      <button class="nav-button" data-page="library">Thư viện</button>
+      <button class="nav-button" data-page="history">Lịch sử</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="page-check" class="page active">
+      <div class="hero">
+        <p class="eyebrow">Dừng lại 10 giây trước khi làm theo</p>
+        <h1>Tin nhắn này có đáng tin không?</h1>
+        <p>Dán nội dung hoặc gửi ảnh chụp màn hình. ScamCheck sẽ nêu mức rủi ro, dấu hiệu và ba việc nên làm.</p>
+      </div>
+
+      <section class="card input-card" aria-labelledby="input-title">
+        <h2 id="input-title">Nội dung cần kiểm tra</h2>
+        <textarea id="message" maxlength="5000" rows="7" placeholder="Dán tin nhắn SMS, Zalo, Messenger hoặc email vào đây..."></textarea>
+        <div class="input-meta">
+          <button id="voice" class="secondary" type="button">🎙️ Đọc bằng giọng nói</button>
+          <span id="count">0 / 5.000</span>
+        </div>
+        <div class="screenshot-upload">
+          <input id="screenshot" type="file" accept="image/png,image/jpeg,image/webp">
+          <label class="secondary" for="screenshot">📷 Chọn ảnh chụp màn hình</label>
+          <span>PNG, JPG hoặc WebP · tối đa 4 MB</span>
+        </div>
+        <div id="image-preview" class="image-preview" hidden>
+          <img alt="Ảnh chụp màn hình đã chọn">
+          <div>
+            <strong id="image-name"></strong>
+            <button id="remove-image" class="secondary" type="button">Xóa ảnh</button>
+          </div>
+        </div>
+        <div class="samples" aria-label="Tin nhắn mẫu">
+          <button type="button" data-sample="Tài khoản ngân hàng của bác sắp bị khóa. Bấm đường dẫn và cung cấp mã xác thực ngay.">Giả ngân hàng</button>
+          <button type="button" data-sample="Cơ quan công an yêu cầu bác chuyển tiền để phục vụ điều tra, phải làm ngay hôm nay.">Giả công an</button>
+          <button type="button" data-sample="Bác đã trúng thưởng. Hãy chuyển phí hồ sơ để nhận quà.">Giả trúng thưởng</button>
+        </div>
+        <p id="form-error" class="error" role="alert" hidden></p>
+        <button id="analyze" class="primary" type="button">Kiểm tra ngay</button>
+      </section>
+
+      <section id="loading" class="card loading" hidden aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <h2>Thám tử đang kiểm tra...</h2>
+        <p>Thường mất dưới 15 giây. Bác đừng đóng trang.</p>
+      </section>
+
+      <section id="result" class="result" hidden aria-live="polite"></section>
+    </section>
+
+    <section id="page-library" class="page" hidden>
+      <div class="page-title">
+        <p class="eyebrow">Tính năng mở rộng A</p>
+        <h1>Thư viện kiểu lừa đảo</h1>
+        <p>Nhận biết bốn nhóm thủ đoạn thường gặp trong đề bài.</p>
+      </div>
+      <div id="filters" class="filters" aria-label="Lọc thư viện"></div>
+      <div id="library-list" class="library-grid"></div>
+    </section>
+
+    <section id="page-history" class="page" hidden>
+      <div class="page-title history-head">
+        <div>
+          <p class="eyebrow">Lưu trên thiết bị này</p>
+          <h1>10 tin gần nhất</h1>
+        </div>
+        <button id="clear-history" class="secondary" type="button">Xóa lịch sử</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </section>
+  </main>
+
+  <footer>
+    ScamCheck là công cụ giáo dục do nhóm học viên phát triển và không thay thế cảnh báo chính thức từ ngân hàng hoặc cơ quan chức năng. Khi nghi ngờ, hãy gọi tổng đài chính thức của ngân hàng được in trên thẻ.
+  </footer>
+
+  <script src="static/app.js" defer></script>
+</body>
+</html>

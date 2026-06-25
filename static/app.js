@@ -10,7 +10,7 @@ const API_BASE = (document.querySelector('meta[name="api-base"]')?.content || ""
 let history = readHistory();
 let library = [];
 let selectedImage = null;
-
+let currentShare = null
 document.querySelectorAll("[data-page]").forEach((button) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
@@ -74,7 +74,8 @@ function renderResult(data, originalMessage) {
   const actions = Array.isArray(detective.actions) ? detective.actions.slice(0, 3) : [];
   const links = Array.isArray(data.links) ? data.links : [];
   const dangerPercent = dangerScore(risk, signs, links);
-
+  currentShare = { message: originalMessage || "", data, savedAt: new Date().toISOString() };
+  const shareLink = makeShareLink(currentShare);
   resultBox.innerHTML = `
     <section class="risk-card ${risk}">
       <div class="risk-overview">
@@ -102,6 +103,21 @@ function renderResult(data, originalMessage) {
     ${renderLinks(links)}
     ${data.psychology ? `<section class="psychology"><h3>Hiểu vì sao mình suýt tin — Cô tâm lý</h3><p>${escapeHtml(data.psychology)}</p></section>` : ""}
     ${data.psychologyError ? `<section class="psychology"><h3>Hiểu vì sao mình suýt tin</h3><p>${escapeHtml(data.psychologyError)}</p></section>` : ""}
+    <section class="share-panel">
+      <h3>Công cụ chia sẻ</h3>
+      <p>Lưu link kết quả hoặc xuất cuộc hội thoại thành ảnh PNG khổ A4 để gửi file.</p>
+      <label for="share-link">Link cuộc hội thoại</label>
+      <div class="share-row">
+        <input id="share-link" type="text" readonly value="${escapeHtml(shareLink)}">
+        <button class="secondary" type="button" data-tool="copy-link">Sao chép link</button>
+      </div>
+      <div class="share-actions">
+        <button class="secondary" type="button" data-tool="native-share">Chia sẻ</button>
+        <button class="secondary" type="button" data-tool="export-a4">Tải ảnh A4</button>
+      </div>
+      <p id="share-status" class="share-status" aria-live="polite"></p>
+    </section>
+    <section id="rescue">
     <section id="rescue">
       <h3>Bác đã làm gì rồi?</h3>
       <p>Chọn một tình huống. Sau khi chọn, ScamCheck sẽ khóa lựa chọn để tránh nhầm lẫn.</p>
@@ -117,6 +133,9 @@ function renderResult(data, originalMessage) {
   resultBox.querySelectorAll("[data-choice]").forEach((button) => {
     button.addEventListener("click", () => requestRescue(button.dataset.choice, button));
   });
+  resultBox.querySelector('[data-tool="copy-link"]')?.addEventListener("click", copyShareLink);
+  resultBox.querySelector('[data-tool="native-share"]')?.addEventListener("click", nativeShare);
+  resultBox.querySelector('[data-tool="export-a4"]')?.addEventListener("click", exportA4Image);
   resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -294,7 +313,211 @@ function readFile(file) {
     reader.readAsDataURL(file);
   });
 }
+Dưới đây là toàn bộ đoạn code của bạn sau khi đã loại bỏ các ký tự đánh dấu dòng (số dòng và dấu +) theo đúng định dạng được yêu cầu:
 
+JavaScript
+function makeShareLink(payload) {
+  const url = new URL(window.location.href);
+  url.hash = `share=${encodeShare(payload)}`;
+  return url.toString();
+}
+
+function encodeShare(payload) {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  let binary = "";
+  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function decodeShare(value) {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const binary = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "="));
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function loadSharedConversation() {
+  if (!location.hash.startsWith("#share=")) return;
+  try {
+    const payload = decodeShare(location.hash.slice(7));
+    if (!payload?.data?.detective) throw new Error("bad-share");
+    message.value = payload.message || "";
+    updateCount();
+    renderResult(payload.data, payload.message || "");
+    showPage("check");
+    setShareStatus("Đã mở kết quả từ link chia sẻ.");
+  } catch {
+    setError("Link chia sẻ không hợp lệ hoặc đã bị cắt ngắn.");
+  }
+}
+
+async function copyShareLink() {
+  const input = document.querySelector("#share-link");
+  if (!input) return;
+  try {
+    await navigator.clipboard.writeText(input.value);
+    setShareStatus("Đã sao chép link.");
+  } catch {
+    input.select();
+    document.execCommand("copy");
+    setShareStatus("Đã sao chép link.");
+  }
+}
+
+async function nativeShare() {
+  const input = document.querySelector("#share-link");
+  if (!input) return;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "Kết quả ScamCheck", text: "Kết quả kiểm tra ScamCheck", url: input.value });
+      setShareStatus("Đã mở bảng chia sẻ.");
+      return;
+    } catch {
+      return;
+    }
+  }
+  await copyShareLink();
+}
+
+function exportA4Image() {
+  if (!currentShare?.data?.detective) return setShareStatus("Chưa có kết quả để xuất ảnh.");
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 1240;
+  canvas.height = 1754;
+  const ctx = canvas.getContext("2d");
+  const data = currentShare.data;
+  const detective = data.detective;
+  const risk = detective.risk || "suspicious";
+  const labels = { safe: "AN TOÀN", suspicious: "NGUY CƠ", danger: "NGUY HIỂM" };
+  const colors = { safe: "#18794e", suspicious: "#8a5a00", danger: "#b42318" };
+  const dangerPercent = dangerScore(risk, detective.signs || [], data.links || []);
+
+  ctx.fillStyle = "#f7f3ea";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  roundRect(ctx, 70, 70, 1100, 1614, 34, "#ffffff");
+
+  ctx.fillStyle = "#073d35";
+  ctx.font = "700 44px Arial";
+  ctx.fillText("ScamCheck", 110, 140);
+  ctx.font = "400 24px Arial";
+  ctx.fillStyle = "#53635f";
+  ctx.fillText(new Date().toLocaleString("vi-VN"), 110, 178);
+
+  drawMeter(ctx, 1010, 160, 92, dangerPercent, colors[risk]);
+  ctx.fillStyle = colors[risk];
+  ctx.font = "800 30px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(`${dangerPercent}%`, 1010, 155);
+  ctx.font = "700 17px Arial";
+  ctx.fillText("NGUY HIỂM", 1010, 183);
+  ctx.textAlign = "left";
+
+  roundRect(ctx, 110, 225, 1020, 96, 20, risk === "safe" ? "#d7f4e5" : risk === "danger" ? "#fee4e2" : "#fff1c2");
+  ctx.fillStyle = colors[risk];
+  ctx.font = "900 32px Arial";
+  ctx.fillText(labels[risk] || "NGUY CƠ", 145, 285);
+
+  let y = 380;
+  y = drawBlock(ctx, "Tin cần kiểm tra", currentShare.message || "Ảnh chụp màn hình", 110, y, 1020, 5);
+  y = drawBlock(ctx, "Phân tích kỹ thuật", detective.summary || "Nội dung này cần được kiểm tra thêm.", 110, y + 18, 1020, 5);
+
+  const signs = Array.isArray(detective.signs) ? detective.signs : [];
+  y = drawList(ctx, "Dấu hiệu tìm thấy", signs.map((item) => `${item.reason}${item.quote ? ` — “${item.quote}”` : ""}`), 110, y + 18, 1020, 5);
+
+  const actions = Array.isArray(detective.actions) ? detective.actions : [];
+  y = drawList(ctx, "Ba việc nên làm", actions, 110, y + 18, 1020, 4);
+
+  if (data.psychology) {
+    y = drawBlock(ctx, "Cô tâm lý", data.psychology, 110, y + 18, 1020, 4);
+  }
+
+  ctx.fillStyle = "#53635f";
+  ctx.font = "400 20px Arial";
+  wrapCanvasText(ctx, "ScamCheck là công cụ giáo dục, không thay thế cảnh báo chính thức từ ngân hàng hoặc cơ quan chức năng.", 110, 1625, 1020, 28, 2);
+
+  const link = document.createElement("a");
+  link.download = `scamcheck-a4-${Date.now()}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+  setShareStatus("Đã tạo ảnh A4 PNG.");
+}
+
+function drawBlock(ctx, title, body, x, y, width, maxLines) {
+  ctx.fillStyle = "#0b5d4f";
+  ctx.font = "800 25px Arial";
+  ctx.fillText(title, x, y);
+  ctx.fillStyle = "#14211e";
+  ctx.font = "400 25px Arial";
+  return wrapCanvasText(ctx, body, x, y + 38, width, 34, maxLines) + 20;
+}
+
+function drawList(ctx, title, items, x, y, width, maxItems) {
+  ctx.fillStyle = "#0b5d4f";
+  ctx.font = "800 25px Arial";
+  ctx.fillText(title, x, y);
+  ctx.fillStyle = "#14211e";
+  ctx.font = "400 24px Arial";
+  let nextY = y + 38;
+  const shown = items.length ? items.slice(0, maxItems) : ["Chưa có dấu hiệu cụ thể."];
+  shown.forEach((item, index) => {
+    nextY = wrapCanvasText(ctx, `${index + 1}. ${item}`, x, nextY, width, 32, 2) + 8;
+  });
+  return nextY + 10;
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 6) {
+  const words = String(text || "").split(/\s+/);
+  const lines = [];
+  let line = "";
+  words.forEach((word) => {
+    const testLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  });
+  if (line) lines.push(line);
+  lines.slice(0, maxLines).forEach((item, index) => {
+    const suffix = index === maxLines - 1 && lines.length > maxLines ? "..." : "";
+    ctx.fillText(item + suffix, x, y + index * lineHeight);
+  });
+  return y + Math.min(lines.length, maxLines) * lineHeight;
+}
+
+function roundRect(ctx, x, y, width, height, radius, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.fill();
+}
+
+function drawMeter(ctx, x, y, radius, percent, color) {
+  ctx.lineWidth = 22;
+  ctx.strokeStyle = "#e8eeeb";
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * percent / 100);
+  ctx.stroke();
+}
+
+function setShareStatus(value) {
+  const target = document.querySelector("#share-status");
+  if (target) target.textContent = value;
+}
 function updateCount() { document.querySelector("#count").textContent = `${message.value.length.toLocaleString("vi-VN")} / 5.000`; }
 function setError(value) { errorBox.textContent = value; errorBox.hidden = !value; }
 function apiUrl(path) { return `${API_BASE}${path}`; }
@@ -320,3 +543,4 @@ function highlight(text, phrases) {
 renderHistory();
 loadLibrary();
 updateCount();
+loadSharedConversation();

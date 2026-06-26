@@ -4,6 +4,7 @@ import json
 import os
 import re
 import time
+import unicodedata
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
@@ -278,17 +279,18 @@ def normalize_detective(data, message = ""):
     actions += DEFAULT_ACTIONS[len(actions):]
 
     risk = data.get("risk") if data.get("risk") in RISKS else "suspicious"
-    risk == "danger" and message and not has_danger_trigger(message):
+    if risk == "danger" and message and not has_danger_trigger(message):
         risk = "suspicious"
     return {
-        "risk": risk
+        "risk": risk,
         "summary": str(data.get("summary") or "Nội dung này cần được kiểm tra thêm."),
         "signs": signs,
         "actions": actions[:3],
     }
 
 def has_danger_trigger(message):
-    return bool(URL_RE.search(message) or DANGER_RE.search(message))
+    plain = unicodedata.normalize("NFD", message).encode("ascii", "ignore").decode()
+    return bool(URL_RE.search(message) or DANGER_RE.search(message) or DANGER_RE.search(plain))
     
 def normalize_psychology(data):
     message = str(data.get("message") or "").strip()

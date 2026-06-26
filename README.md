@@ -21,3 +21,10 @@ Và đây là layout của web:
 └── README.md (README file, obviously xD )
 ```
 
+Note: Cần update thêm hotline các ngân hàng phổ biển  
+      Có thể update thêm voice (prob)  
+      Oh btw this could be my CS50x final project  
+
+Thank you FCT.CLUB staffs, Mr.Bien - my Personal trainer, edx.org, coursera.org and everybody that make me "me".  
+Without the knowledge I aqquired on my journey, I won't have gone this far.  
+THANK YOU!

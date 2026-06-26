@@ -12,9 +12,8 @@ Và đây là layout của web:
 ├── templates/
 │   └── index.html (để chạy local)
 ├── static/
-│   └── js/
-│       ├── app.js (để support frontend)
-│       └── style.css (layout trang web)
+│   ├── app.js (để support frontend)
+│   └── style.css (layout trang web)
 ├── data/
 │   ├── hotlines.json (chưa update hotlines)
 │   └── scam_types.json (các kiểu scam phổ biến)

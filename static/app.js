@@ -87,8 +87,7 @@ function render(data, text) {
     ${links.length ? `<section><h3>Link phát hiện</h3>${links.map(x => `<p class="link-card"><b>${html(x.domain || x.url)}</b><br>${(x.warning || []).map(html).join(" ")}</p>`).join("")}</section>` : ""}
     <section class="share-panel">
       <h3>Chia sẻ</h3>
-      <div class="share-row"><input id="share-link" readonly value="${html(makeShare())}"><button class="secondary" type="button" id="copy-share">Sao chép link</button></div>
-      <div class="share-actions"><button class="secondary" type="button" id="export-a4">Tải ảnh A4</button></div>
+      <div class="share-row"><button class="secondary" type="button" id="copy-share">Sao chép link</button><button class="secondary" type="button" id="export-a4">Tải ảnh A4</button><input id="share-link" readonly value="${html(makeShare())}"></div>
       <p id="share-status" class="share-status"></p>
     </section>`;
   result.hidden = false;
